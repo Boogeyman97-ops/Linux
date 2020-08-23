@@ -1,62 +1,81 @@
-provider "azurerm" {
-  features {}
+resource "azurerm_resource_group" "resource_gp" {
+  name     = "Skylines-Demo-6"
+  location = "eastus"
+
+  tags {
+    Owner = "Aakash"
+  }
 }
 
-resource "azurerm_resource_group" "r1" {
-  name     = "r1-resources"
-  location = "West Europe"
+variable "prefix" {
+  default = "sl"
 }
 
-resource "azurerm_virtual_network" "v1" {
-  name                = "v1-network"
+
+resource "azurerm_virtual_network" "main" {
+  name                = "${var.prefix}-network"
   address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.r1.location
-  resource_group_name = azurerm_resource_group.r1.name
+  location            = "${azurerm_resource_group.resource_gp.location}"
+  resource_group_name = "${azurerm_resource_group.resource_gp.name}"
 }
 
-resource "azurerm_subnet" "sb1" {
+resource "azurerm_subnet" "internal" {
   name                 = "internal"
-  resource_group_name  = azurerm_resource_group.r1.name
-  virtual_network_name = azurerm_virtual_network.v1.name
+  resource_group_name  = "${azurerm_resource_group.resource_gp.name}"
+  virtual_network_name = "${azurerm_virtual_network.main.name}"
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_network_interface" "i1" {
-  name                = "i1-nic"
-  location            = azurerm_resource_group.r1.location
-  resource_group_name = azurerm_resource_group.r1.name
+resource "azurerm_network_interface" "main" {
+  name                = "${var.prefix}-nic"
+  location            = "${azurerm_resource_group.resource_gp.location}"
+  resource_group_name = "${azurerm_resource_group.resource_gp.name}"
 
   ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.sb1.id
-    private_ip_address_allocation = "Dynamic"
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.internal.id}"
+    private_ip_address_allocation = "dynamic"
   }
 }
 
-resource "azurerm_linux_virtual_machine" "l1" {
-  name                = "l1-machine"
-  resource_group_name = azurerm_resource_group.r1.name
-  location            = azurerm_resource_group.r1.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  network_interface_ids = [
-    azurerm_network_interface.i1.id,
-  ]
+resource "azurerm_virtual_machine" "main" {
+  name                  = "${var.prefix}-vm"
+  location              = "${azurerm_resource_group.resource_gp.location}"
+  resource_group_name   = "${azurerm_resource_group.resource_gp.name}"
+  network_interface_ids = ["${azurerm_network_interface.main.id}"]
+  vm_size               = "Standard_DS1_v2"
 
-  admin_ssh_key {
-    username   = "adminuser"
-    public_key = file("~/.ssh/id_rsa.pub")
-  }
+  # Uncomment this line to delete the OS disk automatically when deleting the VM
+  delete_os_disk_on_termination = true
 
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
+  # Uncomment this line to delete the data disks automatically when deleting the VM
+  delete_data_disks_on_termination = true
 
-  source_image_reference {
+  storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
     version   = "latest"
+  }
+
+  storage_os_disk {
+    name              = "myosdisk1"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  os_profile {
+    computer_name  = "hostname"
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+
+  tags {
+    Owner = "Aakash"
   }
 }
