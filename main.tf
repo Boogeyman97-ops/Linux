@@ -2,41 +2,41 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "Terraform-rgroup" {
+resource "azurerm_resource_group" "Terraform_rgroup" {
   name     = "bm-resources"
   location = "East US"
 }
 
-resource "azurerm_virtual_network" "Terraform-vnet" {
+resource "azurerm_virtual_network" "Terraform_vnet" {
   name                = "bm-network"
   address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.Terraform-rgroup.location
-  resource_group_name = azurerm_resource_group.Terraform-rgroup.name
+  location            = azurerm_resource_group.Terraform_rgroup.location
+  resource_group_name = azurerm_resource_group.Terraform_rgroup.name
 }
 
-resource "azurerm_subnet" "Terraform-subnet" {
+resource "azurerm_subnet" "Terraform_subnet" {
   name                 = "internal"
-  resource_group_name  = azurerm_resource_group.Terraform-rgroup.name
-  virtual_network_name = azurerm_virtual_network.Terraform-vnet.name
+  resource_group_name  = azurerm_resource_group.Terraform_rgroup.name
+  virtual_network_name = azurerm_virtual_network.Terraform_vnet.name
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_network_interface" "Terraform-interface" {
+resource "azurerm_network_interface" "Terraform_interface" {
   name                = "bm-nic"
-  location            = azurerm_resource_group.Terraform-rgroup.location
-  resource_group_name = azurerm_resource_group.Terraform-rgroup.name
+  location            = azurerm_resource_group.Terraform_rgroup.location
+  resource_group_name = azurerm_resource_group.Terraform_rgroup.name
 
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = azurerm_subnet.Terraform-subnet.id
+    subnet_id                     = azurerm_subnet.Terraform_subnet.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_linux_virtual_machine" "Linux-1" {
   name                = "Linux-machine"
-  resource_group_name = azurerm_resource_group.Terraform-rgroup.name
-  location            = azurerm_resource_group.Terraform-rgroup.location
+  resource_group_name = azurerm_resource_group.Terraform_rgroup.name
+  location            = azurerm_resource_group.Terraform_rgroup.location
   size                = "Standard_F2"
   admin_username      = "adminuser"
   network_interface_ids = [
