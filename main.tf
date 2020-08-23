@@ -1,81 +1,59 @@
-resource "azurerm_resource_group" "resource_gp" {
-  name     = "Skylines-Demo-6"
-  location = "eastus"
-
-  tags {
-    Owner = "Aakash"
-  }
+resource "azurerm_resource_group" "terraform_linux_grp" {
+  name     = "bm-resources"
+  location = "West Europe"
 }
 
-variable "prefix" {
-  default = "sl"
-}
-
-
-resource "azurerm_virtual_network" "main" {
-  name                = "${var.prefix}-network"
+resource "azurerm_virtual_network" "terraform_linux_vnet" {
+  name                = "bm-network"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.resource_gp.location}"
-  resource_group_name = "${azurerm_resource_group.resource_gp.name}"
+  location            = azurerm_resource_group.terraform_linux_grp.location
+  resource_group_name = azurerm_resource_group.terraform_linux_grp.name
 }
 
-resource "azurerm_subnet" "internal" {
+resource "azurerm_subnet" "terraform_linux_subnet" {
   name                 = "internal"
-  resource_group_name  = "${azurerm_resource_group.resource_gp.name}"
-  virtual_network_name = "${azurerm_virtual_network.main.name}"
+  resource_group_name  = azurerm_resource_group.terraform_linux_grp.name
+  virtual_network_name = azurerm_virtual_network.terraform_linux_vnet.name
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_network_interface" "main" {
-  name                = "${var.prefix}-nic"
-  location            = "${azurerm_resource_group.resource_gp.location}"
-  resource_group_name = "${azurerm_resource_group.resource_gp.name}"
+resource "azurerm_network_interface" "terraform_linux_interface" {
+  name                = "bm-nic"
+  location            = azurerm_resource_group.terraform_linux_grp.location
+  resource_group_name = azurerm_resource_group.terraform_linux_grp.name
 
   ip_configuration {
-    name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.internal.id}"
-    private_ip_address_allocation = "dynamic"
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.terraform_linux_subnet.id
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
-resource "azurerm_virtual_machine" "main" {
-  name                  = "${var.prefix}-vm"
-  location              = "${azurerm_resource_group.resource_gp.location}"
-  resource_group_name   = "${azurerm_resource_group.resource_gp.name}"
-  network_interface_ids = ["${azurerm_network_interface.main.id}"]
-  vm_size               = "Standard_DS1_v2"
+resource "azurerm_linux_virtual_machine" "example" {
+  name                = "example-machine"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.example.id,
+  ]
 
-  # Uncomment this line to delete the OS disk automatically when deleting the VM
-  delete_os_disk_on_termination = true
+  os_profile {
+    computer_name  = "hostname"
+    admin_username = "terraformlinuxadminuser"
+    admin_password = "Hindustan1945"
+  }
 
-  # Uncomment this line to delete the data disks automatically when deleting the VM
-  delete_data_disks_on_termination = true
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
 
-  storage_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
     version   = "latest"
-  }
-
-  storage_os_disk {
-    name              = "myosdisk1"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-  }
-
-  os_profile {
-    computer_name  = "hostname"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-
-  tags {
-    Owner = "Aakash"
   }
 }
