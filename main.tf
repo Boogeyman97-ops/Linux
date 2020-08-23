@@ -1,6 +1,6 @@
 resource "azurerm_resource_group" "terraform_linux_grp" {
   name     = "bm-resources"
-  location = "West Europe"
+  location = "East US"
 }
 
 resource "azurerm_virtual_network" "terraform_linux_vnet" {
@@ -29,14 +29,13 @@ resource "azurerm_network_interface" "terraform_linux_interface" {
   }
 }
 
-resource "azurerm_linux_virtual_machine" "example" {
-  name                = "example-machine"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
+resource "azurerm_linux_virtual_machine" "terraform_linux_machine" {
+  name                = "linux-machine"
+  resource_group_name = azurerm_resource_group.terraform_linux_grp.name
+  location            = azurerm_resource_group.terraform_linux_grp.location
   size                = "Standard_F2"
-  admin_username      = "adminuser"
   network_interface_ids = [
-    azurerm_network_interface.example.id,
+    azurerm_network_interface.terraform_linux_interface.id,
   ]
 
   os_profile {
