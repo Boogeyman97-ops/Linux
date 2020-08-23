@@ -21,3 +21,10 @@ variable "client_secret" {
 variable "tenant_id" {
   description = "Enter Tenant ID / Directory ID of your Azure AD. Run Get-AzureSubscription to know your Tenant ID"
 }
+{
+  "appId": "087ab2b7-78f7-42a1-aa68-625d9f2ab574",
+  "displayName": "Terraform-sp-1",
+  "name": "http://Terraform-sp-1",
+  "password": "vo~Nfe-uQ.z4YGkFT6iYn-G5oE9~ko30se",
+  "tenant": "426008e7-7e3f-4ad1-ba2d-7fd1e5c4d3b2"
+}
