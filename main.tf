@@ -20,6 +20,17 @@ resource "azurerm_subnet" "internal" {
   virtual_network_name = azurerm_virtual_network.terraform_linux_vnet.name
   address_prefix       = "10.0.2.0/24"
 }
+resource "azurerm_public_ip" "external" {
+  name                    = "test-pip"
+  location                = azurerm_resource_group.terraform_linux_grp.location
+  resource_group_name     = azurerm_resource_group.terraform_linux_grp.name
+  allocation_method       = "Dynamic"
+  idle_timeout_in_minutes = 30
+
+  tags = {
+    environment = "test"
+  }
+}
 
 resource "azurerm_network_interface" "main" {
   name                = "${var.prefix}-nic"
@@ -30,6 +41,7 @@ resource "azurerm_network_interface" "main" {
     name                          = "testconfiguration1"
     subnet_id                     = azurerm_subnet.internal.id
     private_ip_address_allocation = "Dynamic"
+	public_ip_address_id          =azurerm_public_ip.external.id
   }
 }
 
